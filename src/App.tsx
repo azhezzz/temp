@@ -1,26 +1,32 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useCallback } from "react";
+import { columns, data } from "./colConfig";
+import MUIDataTable from "./table";
 
-function App() {
+export default function() {
+  const [rowsSelected, setRowsSelected] = useState<any[]>([]);
+  const onRowsSelect = useCallback((rowsSelected: any, allRows: any[]) => {
+    console.log(rowsSelected, allRows);
+    const list = allRows.map((row: { dataIndex: any }) => row.dataIndex);
+    setRowsSelected(list);
+  }, []);
+  const options = {
+    filter: true,
+    selectableRows: "multiple",
+    selectableRowsOnClick: true,
+    filterType: "dropdown",
+    responsive: "stacked",
+    rowsPerPage: 10,
+    rowsSelected: rowsSelected,
+    onRowsSelect,
+    selectableRowsHeader: true
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <MUIDataTable
+      title={"ACME Employee list"}
+      data={data}
+      columns={columns}
+      options={options as any}
+    />
   );
 }
-
-export default App;

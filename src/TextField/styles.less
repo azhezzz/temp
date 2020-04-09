@@ -1,0 +1,76 @@
+@import '../../../theme.less';
+
+.inputContainer {
+  :global {
+    .MuiInputBase-root,
+    .MuiInput-underline:hover:not(.Mui-disabled) {
+      &::before {
+        border-bottom-color: @backgroundHighEmphasis;
+      }
+      &::after {
+        border-bottom-color: @backgroundHighEmphasis;
+      }
+    }
+    .MuiSelect-icon {
+      color: @backgroundHighEmphasis;
+    }
+    //label: normal size in the input component
+    .MuiInputLabel-root {
+      #Text.Body2();
+      color: @backgroundMidEmphasis;
+    }
+    //label: small size on the top
+    .MuiInputLabel-shrink.MuiFormLabel-filled {
+      #Text.Body275();
+      color: @backgroundMidEmphasis;
+    }
+    .MuiInputLabel-shrink.MuiFormLabel-outlined {
+      #Text.Body275();
+      color: @backgroundMidEmphasis;
+    }
+    .MuiFormLabel-root.Mui-disabled {
+      #Text.Body275();
+      color: @backgroundMidEmphasis;
+    }
+    .MuiFormLabel-root.Mui-focused {
+      #Text.Body275();
+      color: @backgroundHighEmphasis;
+    }
+    .MuiFormLabel-root.Mui-error {
+      #Text.Body275();
+      color: @error700;
+    }
+    //others
+    .MuiInputAdornment-positionEnd {
+      .MuiTypography-root {
+        #Text.Body2Strong();
+        color: @backgroundHighEmphasis;
+      }
+    }
+    .MuiFormHelperText-root {
+      #Text.Body275();
+      color: @backgroundMidEmphasis;
+
+      &.Mui-error {
+        color: @error700;
+      }
+    }
+  }
+}
+.inputRoot {
+  .inputMultiline,
+  .input {
+    #Text.Body2();
+    color: @backgroundHighEmphasis;
+  }
+  .disabled {
+    #Text.Body2();
+    color: @backgroundMidEmphasis;
+  }
+  &:hover .inputMultiline,
+  .inputMultiline {
+    & ~ fieldset {
+      border-color: @backgroundHighEmphasis;
+    }
+  }
+}

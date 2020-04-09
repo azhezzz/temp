@@ -1,0 +1,61 @@
+@import '../../../theme.less';
+
+.customSelect {
+  :global {
+    .MuiInputBase-root,
+    .MuiInput-underline:hover:not(.Mui-disabled) {
+      &::before {
+        border-bottom-color: @backgroundHighEmphasis;
+      }
+      &::after {
+        border-bottom-color: @backgroundHighEmphasis;
+      }
+    }
+    .MuiInput-input {
+      #Text.Body2();
+      color: @backgroundHighEmphasis;
+    }
+    //label: normal size in the input component
+    .MuiInputLabel-formControl {
+      #Text.Body2();
+      color: @backgroundMidEmphasis;
+    }
+    //label: small size on the top
+    .MuiFormLabel-root.Mui-focused {
+      #Text.Body275();
+      color: @backgroundHighEmphasis;
+    }
+    .MuiInputLabel-shrink {
+      #Text.Body275();
+      color: @backgroundMidEmphasis;
+    }
+    .MuiFormHelperText-root {
+      #Text.Body275();
+      color: @backgroundMidEmphasis;
+    }
+    .MuiListItem-button {
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    }
+    .MuiSelect-select:focus {
+      background-color: transparent;
+    }
+    .MuiListItem-root.Mui-selected,
+    .MuiListItem-root.Mui-selected:hover {
+      background-color: fade(@secondary700, 20%);
+    }
+    .MuiSvgIcon-root {
+      top: calc(50% - 10px);
+    }
+    .MuiSelect-icon {
+      color: @backgroundHighEmphasis;
+    }
+  }
+}
+.selectorBaseInput {
+  padding-left: 7px;
+  min-width: 137px;
+  height: 24px;
+  border-radius: 2px;
+  border: 1px solid @backgroundMidEmphashisAlt;
+  font-size: 12px;
+}
