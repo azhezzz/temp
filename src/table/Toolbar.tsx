@@ -1,20 +1,12 @@
 /* eslint-disable no-console */
-import React, {
-  useCallback,
-  useState,
-  memo,
-  useEffect,
-  forwardRef,
-  useImperativeHandle
-} from "react";
-import _ from "lodash";
-import { InputAdornment } from "@material-ui/core";
-import { TextField } from "../TextField";
-import { Select } from "../Select";
-import { DatePicker } from "@material-ui/pickers";
-import DateIcon from "@material-ui/icons/Event";
-import styles from "./styles.less";
-import { CopyToClipboard } from "./CopyToClipboard";
+import React, { useCallback, useState, memo, useEffect, forwardRef, useImperativeHandle } from 'react';
+import _ from 'lodash';
+import { InputAdornment } from '@material-ui/core';
+import { TextField } from '../TextField';
+import { DatePicker } from '@material-ui/pickers';
+import DateIcon from '@material-ui/icons/Event';
+import styles from './styles.less';
+import { CopyToClipboard } from './CopyToClipboard';
 const DatePickerTextField = (props: any) => (
   <TextField
     {...props}
@@ -24,22 +16,12 @@ const DatePickerTextField = (props: any) => (
         <InputAdornment position="end" className={styles.dateIcon}>
           <DateIcon fontSize="small" />
         </InputAdornment>
-      )
+      ),
     }}
   />
 );
 
-const Toolbar = (
-  {
-    handleDateChange,
-    dateTypeOptions,
-    dateType,
-    handleDateTypeChange,
-    columns,
-    data
-  }: any,
-  ref: any
-) => {
+const Toolbar = ({ handleDateChange, DateTypeSelect, columns, data }: any, ref: any) => {
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
   const handleFromDateChange = useCallback((date: any) => {
@@ -60,7 +42,7 @@ const Toolbar = (
   return (
     <>
       <CopyToClipboard data={data} headers={columns} />
-      {_.find(columns, ["isDateFilter", true]) && (
+      {_.find(columns, ['isDateFilter', true]) && (
         <div className={styles.datePickerContainer}>
           <DatePicker
             label="From"
@@ -86,16 +68,7 @@ const Toolbar = (
           />
         </div>
       )}
-      {dateTypeOptions.length > 1 && (
-        <div className={styles.dateTypeSelectContainer}>
-          <Select
-            options={dateTypeOptions}
-            value={dateType}
-            onChange={handleDateTypeChange}
-            className={styles.dateTypeSelect}
-          />
-        </div>
-      )}
+      <DateTypeSelect />
     </>
   );
 };
