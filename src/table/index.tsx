@@ -1,15 +1,18 @@
-import React from 'react';
-import MUIDataTable, { MUIDataTableProps, MUIDataTableColumn } from 'mui-datatables';
-import _ from 'lodash';
-import { Toolbar } from './Toolbar';
-import dayjs from 'dayjs';
-import { MuiPickersUtilsProvider } from '@material-ui/pickers';
-import DayjsUtils from '@date-io/dayjs';
-import styles from './styles.less';
-import { Select } from '../Select';
-import { ErrorBoundaryWrap } from '../ErrorBoundary/';
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
-import classnames from 'classnames';
+import React from "react";
+import MUIDataTable, {
+  MUIDataTableProps,
+  MUIDataTableColumn
+} from "mui-datatables";
+import _ from "lodash";
+import { Toolbar } from "./Toolbar";
+import dayjs from "dayjs";
+import { MuiPickersUtilsProvider } from "@material-ui/pickers";
+import DayjsUtils from "@date-io/dayjs";
+import styles from "./styles.less";
+import { Select } from "../Select";
+import { ErrorBoundaryWrap } from "../ErrorBoundary/";
+import { createMuiTheme, MuiThemeProvider } from "@material-ui/core";
+import classnames from "classnames";
 
 interface IProps extends MUIDataTableProps {
   columns: ({
@@ -21,11 +24,12 @@ interface IProps extends MUIDataTableProps {
   isSelectableRowsOnClick?: boolean;
 }
 interface IState {
-  sort: { column: string; direction: 'desc' | 'asc' | 'none' };
+  sort: { column: string; direction: "desc" | "asc" | "none" };
   filters: any[];
   dateTypeValue: string;
   dateTypeOptions: any[];
   date: { from: number; to: number };
+  searchText: string | null;
 }
 
 @ErrorBoundaryWrap()
@@ -35,19 +39,20 @@ export default class Example extends React.PureComponent<IProps, IState> {
     super(props);
     this.dateRef = React.createRef();
     this.state = {
-      sort: { column: '', direction: 'none' },
+      sort: { column: "", direction: "none" },
       filters: [],
-      dateTypeValue: '',
+      dateTypeValue: "",
       dateTypeOptions: [],
       date: { from: 0, to: 0 },
+      searchText: null
     };
   }
   onColumnSortChange = (column: any, direction: any) => {
-    if (direction === 'descending') {
-      this.setState({ sort: { column, direction: 'desc' } });
+    if (direction === "descending") {
+      this.setState({ sort: { column, direction: "desc" } });
     }
-    if (direction === 'ascending') {
-      this.setState({ sort: { column, direction: 'asc' } });
+    if (direction === "ascending") {
+      this.setState({ sort: { column, direction: "asc" } });
     }
   };
   onFilterChange = (changedColumn: string, filters: any[]) => {
@@ -62,10 +67,21 @@ export default class Example extends React.PureComponent<IProps, IState> {
 
   handleDateChange = (fromDate: number, toDate: number) => {
     this.setState({
-      date: { from: dayjs(fromDate).startOf('day').unix() || 0, to: dayjs(toDate).endOf('day').unix() || 0 },
+      date: {
+        from:
+          dayjs(fromDate)
+            .startOf("day")
+            .unix() || 0,
+        to:
+          dayjs(toDate)
+            .endOf("day")
+            .unix() || 0
+      }
     });
   };
-  handleDateTypeValueChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  handleDateTypeValueChange = (
+    event: React.ChangeEvent<{ value: unknown }>
+  ) => {
     this.setState({ dateTypeValue: event.target.value as string });
   };
   buildCustomToolBar = () => {
@@ -94,81 +110,92 @@ export default class Example extends React.PureComponent<IProps, IState> {
       </div>
     );
   };
-
-  initDateType = () => {
+  onSearchChange = (searchText: string) => {
+    this.setState({ searchText });
+  };
+  initState = () => {
     const { columns } = this.props;
     let dateTypeOptions: any[] = [];
-    let dateTypeValue = '';
-    const sort = { column: '', direction: 'none' as 'none' };
+    let dateTypeValue = "";
+    const sort = { column: "", direction: "none" as "none" };
     const filters: any[] = [];
     const date = { from: 0, to: 0 };
-    columns.forEach((item) => {
+    const searchText = null;
+    columns.forEach(item => {
+      if (item.isDateFilter) {
+        dateTypeValue = item.name;
+      }
       if (item.dateType) {
-        dateTypeOptions = item.dateType.map((it: any) => ({ text: it.label, value: it.name }));
+        dateTypeOptions = item.dateType.map((it: any) => ({
+          text: it.label,
+          value: it.name
+        }));
         dateTypeValue = item.name;
       }
     });
-    this.setState({ dateTypeValue, dateTypeOptions, sort, filters, date });
+    this.setState({
+      dateTypeValue,
+      dateTypeOptions,
+      sort,
+      filters,
+      date,
+      searchText
+    });
   };
   componentDidMount() {
-    this.initDateType();
+    this.initState();
   }
 
   componentDidUpdate(prevProps: IProps) {
     if (prevProps.title !== this.props.title) {
-      this.initDateType();
+      this.initState();
     }
   }
 
-  onDownload = (
-    buildHead: (columns: any) => string,
-    buildBody: (data: any) => string,
-    columns: any,
-    data: string | any[]
-  ) => {
-    if (data.length === 0) {
-      return false;
-    }
-    const columnsFilter = (value: any) => {
-      return value.label !== 'Edit Note';
-    };
-    const dataFilter = (value: any) => {
-      const lastIndex = value.data.length - 1;
-      _.pullAt(value.data, lastIndex);
-    };
-    const distColumns = _.filter(columns, columnsFilter);
-    const distData = data[0].data.length === distColumns.length ? data : _.forEach(data, dataFilter);
-    const CSVHead = buildHead(distColumns);
-    const CSVBody = buildBody(distData);
-    const csv = `${CSVHead}${CSVBody}`.trim();
-    return csv;
-  };
-
   downloadOptions = (csvFileName: string) => ({
     filename: csvFileName,
-    separator: ',',
+    separator: ",",
     filterOptions: {
       useDisplayedColumnsOnly: true,
-      useDisplayedRowsOnly: true,
-    },
+      useDisplayedRowsOnly: true
+    }
   });
 
   render() {
-    const { sort, filters, dateTypeValue, dateTypeOptions, date } = this.state;
-    const { options, columns, title, data, csvFileName = '', isSelectableRowsOnClick = true } = this.props;
-    const dateFilterList = _.compact(Object.values(date)).length === 2 ? Object.values(date) : [];
+    const {
+      sort,
+      filters,
+      dateTypeValue,
+      dateTypeOptions,
+      date,
+      searchText
+    } = this.state;
+    const {
+      options = {},
+      columns,
+      title,
+      data,
+      csvFileName = "",
+      isSelectableRowsOnClick = true
+    } = this.props;
+    const dateFilterList =
+      _.compact(Object.values(date)).length === 2 ? Object.values(date) : [];
     const defaultOptions = {
       onColumnSortChange: this.onColumnSortChange,
       onFilterChange: this.onFilterChange,
       customToolbar: this.buildCustomToolBar,
+      onSearchChange: this.onSearchChange,
       elevation: 0,
       disableToolbarSelect: true,
       print: false,
+      searchText,
       downloadOptions: this.downloadOptions(csvFileName),
       selectableRowsHeader: Boolean(data.length),
-      selectableRowsOnClick: isSelectableRowsOnClick,
+      selectableRowsOnClick:
+        (options.selectableRows !== "none" && isSelectableRowsOnClick) ||
+        options.onRowClick
     };
-    const customizeOptions = { ...options, ...defaultOptions };
+    const customizeOptions = { ...defaultOptions, ...options };
     const customizeColumns = _.cloneDeep(columns).map((item, index) => {
       item.options = item.options || {};
       if (item.name === sort.column) {
@@ -184,19 +211,23 @@ export default class Example extends React.PureComponent<IProps, IState> {
 
       if (item.dateType) {
         item.name = dateTypeValue || item.name;
-        item.label = _.get(_.find(dateTypeOptions, ['value', dateTypeValue]), 'text', item.label);
+        item.label = _.get(
+          _.find(dateTypeOptions, ["value", dateTypeValue]),
+          "text",
+          item.label
+        );
       }
 
       if (item.isDateFilter) {
         item.options.filter = true;
-        item.options.filterType = 'custom';
+        item.options.filterType = "custom";
 
         item.options.filterList = (dateFilterList as unknown) as string[];
         item.options.filterOptions = { logic: dateColumnFilterOptionsLogic };
 
         item.options.customFilterListOptions = {
           render: dateColumnCustomFilterListOptionsRender,
-          update: cancelFilter,
+          update: cancelFilter
         };
       }
       return item;
@@ -219,7 +250,11 @@ export default class Example extends React.PureComponent<IProps, IState> {
   }
 }
 
-function cancelFilter(filterList: { [x: string]: never[] }, filterPos: number, index: string | number) {
+function cancelFilter(
+  filterList: { [x: string]: never[] },
+  filterPos: number,
+  index: string | number
+) {
   if (filterPos === 0) {
     filterList[index].splice(filterPos, 1);
   } else if (filterPos === 1) {
@@ -227,14 +262,19 @@ function cancelFilter(filterList: { [x: string]: never[] }, filterPos: number, i
   } else if (filterPos === -1) {
     filterList[index] = [];
   }
-  console.log('customFilterListOnDelete: ', filterList, filterPos, index);
+  console.log("customFilterListOnDelete: ", filterList, filterPos, index);
   return filterList;
 }
 
 function dateColumnCustomFilterListOptionsRender(v: any) {
-  return `From: ${dayjs.unix(v[0]).format('YYYY/MM/DD')},  To: ${dayjs.unix(v[1]).format('YYYY/MM/DD')}`;
+  return `From: ${dayjs.unix(v[0]).format("YYYY/MM/DD")},  To: ${dayjs
+    .unix(v[1])
+    .format("YYYY/MM/DD")}`;
 }
-function dateColumnFilterOptionsLogic(dateFormatter: string, filters: number[]) {
+function dateColumnFilterOptionsLogic(
+  dateFormatter: string,
+  filters: number[]
+) {
   const fromDate = filters[0];
   const toDate = filters[1];
   if (!fromDate || !toDate) return false;
@@ -245,52 +285,75 @@ function dateColumnFilterOptionsLogic(dateFormatter: string, filters: number[]) 
 
 const CustomMuiTheme = (() =>
   createMuiTheme({
-    palette: { primary: { main: '#67b1f6' } },
+    palette: { primary: { main: "#67b1f6" } },
     overrides: {
-      MuiIconButton: { root: { color: 'inherit' } },
+      MuiIconButton: { root: { color: "inherit" } },
       MUIDataTable: {
         paper: {
-          backgroundColor: 'var(--surfaceL1)',
-          color: 'var(--surfaceHighEmphasis)',
-          boxShadow: 'none',
-          borderRadius: 0,
-        },
+          backgroundColor: "var(--surfaceL1)",
+          color: "var(--surfaceHighEmphasis)",
+          boxShadow: "none",
+          borderRadius: 0
+        }
       },
       // thead
-      MUIDataTableHeadRow: { root: { backgroundColor: 'transparent' } },
+      MUIDataTableHeadRow: { root: { backgroundColor: "transparent" } },
       MUIDataTableHeadCell: {
-        fixedHeaderCommon: { backgroundColor: 'transparent' },
-        sortAction: { alignItems: 'center' },
-        sortActive: { color: 'inherit' },
+        fixedHeaderCommon: { backgroundColor: "transparent" },
+        sortAction: { alignItems: "center" },
+        sortActive: { color: "inherit" }
       },
       // tbody
       MuiTableCell: {
-        body: { color: 'var(--surfaceHighEmphasis)' },
-        head: { color: 'var(--surfaceHighEmphasis)' },
-        root: { borderBottomColor: 'var(--backgroundMidEmphashisAlt)', minHeight: 56 },
+        body: { color: "var(--surfaceHighEmphasis)" },
+        head: { color: "var(--surfaceHighEmphasis)" },
+        root: {
+          borderBottomColor: "var(--backgroundMidEmphashisAlt)"
+        }
       },
       // sorter
-      MuiTableSortLabel: { icon: { color: 'var(--surfaceHighEmphasis) !important' } },
+      MuiTableSortLabel: {
+        icon: { color: "var(--surfaceHighEmphasis) !important" }
+      },
       //checkbox
-      MuiCheckbox: { root: { color: 'var(--backgroundMidEmphashisAlt)' } },
+      MuiCheckbox: { root: { color: "var(--backgroundMidEmphashisAlt)" } },
       MUIDataTableSelectCell: {
-        headerCell: { backgroundColor: 'transparent' },
-        fixedHeaderCommon: { backgroundColor: 'transparent' },
+        headerCell: { backgroundColor: "transparent" },
+        fixedHeaderCommon: { backgroundColor: "transparent" }
       },
       // toolbar
       MUIDataTableToolbar: {
-        icon: { color: 'var(--backgroundHighEmphasis)' },
-        actions: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end' },
+        icon: { color: "var(--backgroundHighEmphasis)" },
+        actions: {
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end"
+        }
       },
-      MuiPaper: { root: { color: 'var(--surfaceHighEmphasis)', backgroundColor: 'var(--surfaceL1)' } },
-      MuiInputBase: { input: { color: 'var(--surfaceHighEmphasis)' } },
-      MuiFormLabel: { root: { color: 'var(--surfaceHighEmphasis)' } },
-      MUIDataTableFilter: { root: { backgroundColor: 'var(--surfaceL1)' }, title: { color: 'white' } },
-      MUIDataTableViewCol: { label: { color: 'var(--surfaceHighEmphasis)' }, title: { color: 'white' } },
+      MuiPaper: {
+        root: {
+          color: "var(--surfaceHighEmphasis)",
+          backgroundColor: "var(--surfaceL1)"
+        }
+      },
+      MuiInputBase: { input: { color: "var(--surfaceHighEmphasis)" } },
+      MuiFormLabel: { root: { color: "var(--surfaceHighEmphasis)" } },
+      MUIDataTableFilter: {
+        root: { backgroundColor: "var(--surfaceL1)" },
+        title: { color: "white" }
+      },
+      MUIDataTableViewCol: {
+        label: { color: "var(--surfaceHighEmphasis)" },
+        title: { color: "white" }
+      },
       // footer
-      MUIDataTablePagination: { root: { borderBottom: 'none', color: 'var(--backgroundHighEmphasis)' } },
-      MuiTablePagination: { selectIcon: { color: 'var(--backgroundHighEmphasis)' } },
+      MUIDataTablePagination: {
+        root: { borderBottom: "none", color: "var(--backgroundHighEmphasis)" }
+      },
+      MuiTablePagination: {
+        selectIcon: { color: "var(--backgroundHighEmphasis)" }
+      },
       // date picker
-      MuiPickersCalendarHeader: { iconButton: { backgroundColor: 'inherit' } },
-    },
+      MuiPickersCalendarHeader: { iconButton: { backgroundColor: "inherit" } }
+    }
   } as any))();
