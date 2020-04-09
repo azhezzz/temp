@@ -8,9 +8,12 @@ import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DayjsUtils from '@date-io/dayjs';
 import styles from './styles.less';
 import { Select } from '../Select';
+import { ErrorBoundaryWrap } from '../ErrorBoundary/';
 
 interface IProps extends MUIDataTableProps {
   columns: MUIDataTableColumn[];
+  csvFileName?: string;
+  isSelectableRowsOnClick?: boolean;
 }
 interface IState {
   sort: { column: string; direction: 'desc' | 'asc' | '' };
@@ -19,6 +22,8 @@ interface IState {
   dateTypeOptions: any[];
   date: { from: number; to: number };
 }
+
+@ErrorBoundaryWrap()
 export default class Example extends React.PureComponent<IProps, IState> {
   dateRef: React.RefObject<any>;
   constructor(props: IProps) {
@@ -40,12 +45,12 @@ export default class Example extends React.PureComponent<IProps, IState> {
       this.setState({ sort: { column, direction: 'asc' } });
     }
   };
-  onFilterChange = (column: any, filters: any) => {
+  onFilterChange = (changedColumn: string, filters: any[]) => {
     const { dateTypeValue } = this.state;
-    if (column === dateTypeValue) {
+    console.log(changedColumn, filters);
+    if (changedColumn === dateTypeValue) {
       this.setState({ date: { from: 0, to: 0 } });
-      console.log(this.dateRef);
-      this.dateRef && this.dateRef.current && this.dateRef.current.resetDate();
+      this.dateRef.current && this.dateRef.current.resetDate();
     }
     this.setState({ filters });
   };
@@ -89,6 +94,9 @@ export default class Example extends React.PureComponent<IProps, IState> {
     const { columns } = this.props;
     let dateTypeOptions: any[] = [];
     let dateTypeValue = '';
+    const sort = { column: '', direction: '' as '' };
+    const filters: any[] = [];
+    const date = { from: 0, to: 0 };
     columns.forEach((item) => {
       //@ts-ignore
       if (item.dateType) {
@@ -97,7 +105,7 @@ export default class Example extends React.PureComponent<IProps, IState> {
         dateTypeValue = item.name;
       }
     });
-    this.setState({ dateTypeValue, dateTypeOptions });
+    this.setState({ dateTypeValue, dateTypeOptions, sort, filters, date });
   };
   componentDidMount() {
     this.initDateType();
@@ -109,9 +117,42 @@ export default class Example extends React.PureComponent<IProps, IState> {
     }
   }
 
+  onDownload = (
+    buildHead: (columns: any) => string,
+    buildBody: (data: any) => string,
+    columns: any,
+    data: string | any[]
+  ) => {
+    if (data.length === 0) {
+      return false;
+    }
+    const columnsFilter = (value: any) => {
+      return value.label !== 'Edit Note';
+    };
+    const dataFilter = (value: any) => {
+      const lastIndex = value.data.length - 1;
+      _.pullAt(value.data, lastIndex);
+    };
+    const distColumns = _.filter(columns, columnsFilter);
+    const distData = data[0].data.length === distColumns.length ? data : _.forEach(data, dataFilter);
+    const CSVHead = buildHead(distColumns);
+    const CSVBody = buildBody(distData);
+    const csv = `${CSVHead}${CSVBody}`.trim();
+    return csv;
+  };
+
+  downloadOptions = (csvFileName: string) => ({
+    filename: csvFileName,
+    separator: ',',
+    filterOptions: {
+      useDisplayedColumnsOnly: true,
+      useDisplayedRowsOnly: true,
+    },
+  });
+
   render() {
     const { sort, filters, dateTypeValue, dateTypeOptions, date } = this.state;
-    const { options, columns, title, data } = this.props;
+    const { options, columns, title, data, csvFileName = '', isSelectableRowsOnClick = true } = this.props;
     const dateFilterList = _.compact(Object.values(date)).length === 2 ? Object.values(date) : [];
     const defaultOptions = {
       onColumnSortChange: this.onColumnSortChange,
@@ -120,6 +161,9 @@ export default class Example extends React.PureComponent<IProps, IState> {
       elevation: 0,
       disableToolbarSelect: true,
       print: false,
+      downloadOptions: this.downloadOptions(csvFileName),
+      selectableRowsHeader: Boolean(data.length),
+      selectableRowsOnClick: isSelectableRowsOnClick,
     };
     const customizeOptions = { ...options, ...defaultOptions };
     const customizeColumns = _.cloneDeep(columns).map((item, index) => {
@@ -133,11 +177,7 @@ export default class Example extends React.PureComponent<IProps, IState> {
         //@ts-ignore
         item.options.filterList = filters[index];
         //@ts-ignore
-        item.options.filterType = 'custom';
-        //@ts-ignore
         item.options.customFilterListOptions = { update: cancelFilter };
-        //@ts-ignore
-        // item.options.filterOptions = { display: v => "" };
       }
       //@ts-ignore
       if (item.dateType) {
@@ -150,24 +190,16 @@ export default class Example extends React.PureComponent<IProps, IState> {
         item.options.filterType = 'custom';
         //@ts-ignore
         item.options.filterList = dateFilterList;
-        item.options.filterOptions = {
-          logic(dateFormatter: string, filters: number[]) {
-            const fromDate = filters[0];
-            const toDate = filters[1];
-            const date = dayjs(dateFormatter).unix();
-            if (fromDate && toDate) return date < fromDate || date > toDate || !date;
-            return false;
-          },
-        };
+        item.options.filterOptions = { logic: dateColumnFilterOptionsLogic };
         //@ts-ignore
         item.options.customFilterListOptions = {
-          render: (v: any) =>
-            `From: ${dayjs.unix(v[0]).format('YYYY/MM/DD')},  To: ${dayjs.unix(v[1]).format('YYYY/MM/DD')}`,
+          render: dateColumnCustomFilterListOptionsRender,
           update: cancelFilter,
         };
       }
       return item;
     });
+
     return (
       <MuiPickersUtilsProvider utils={DayjsUtils}>
         <MUIDataTable title={title} data={data} columns={customizeColumns as any} options={customizeOptions as any} />
@@ -184,7 +216,18 @@ function cancelFilter(filterList: { [x: string]: never[] }, filterPos: number, i
   } else if (filterPos === -1) {
     filterList[index] = [];
   }
-  // console.log('customFilterListOnDelete: ', filterList, filterPos, index);
-
+  console.log('customFilterListOnDelete: ', filterList, filterPos, index);
   return filterList;
+}
+
+function dateColumnCustomFilterListOptionsRender(v: any) {
+  return `From: ${dayjs.unix(v[0]).format('YYYY/MM/DD')},  To: ${dayjs.unix(v[1]).format('YYYY/MM/DD')}`;
+}
+function dateColumnFilterOptionsLogic(dateFormatter: string, filters: number[]) {
+  const fromDate = filters[0];
+  const toDate = filters[1];
+  if (!fromDate || !toDate) return false;
+  const date = dayjs(dateFormatter).unix();
+  console.log(fromDate, toDate, date, dateFormatter);
+  return date < fromDate || date > toDate || !date;
 }

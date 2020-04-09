@@ -1,4 +1,6 @@
 /* eslint-disable max-lines */
+import dayjs from 'dayjs';
+
 export enum RequestType {
   ISSUE = 1,
   REDEEM = 2,
@@ -35,6 +37,7 @@ export function getEnumTextByEnum(Enum: any, EnumText: any) {
 
 const RenderRequestTypeText = (text: RequestType) => getEnumTextByEnum(text, EnumText.RequestType);
 const RenderStatus = (text: RequestStatus) => getEnumTextByEnum(text, EnumText.RequestStatus);
+const dateFormatRender = (text: number) => dayjs.unix(text).format('YYYY/MM/DD HH:mm:ss');
 
 export const columns = [
   {
@@ -75,13 +78,18 @@ export const columns = [
       { name: 'suspendedAt', label: 'Suspended Time' },
       { name: 'rejectedAt', label: 'Rejected Time' },
     ],
-
-    options: { filter: false },
+    copyRender: dateFormatRender,
+    options: { filter: false, customBodyRender: dateFormatRender },
   },
   {
     name: 'notes',
     label: 'Note',
     options: { sort: false, filter: false },
+  },
+  {
+    name: 'EditNote',
+    label: 'Edit Note',
+    options: { sort: false, filter: false, download: false },
   },
 ];
 
@@ -89,7 +97,7 @@ export const data = [
   {
     id: '1',
     requestType: 1,
-    createAt: '1577281032',
+    createAt: '1577281040',
     confirmedAt: '1576676232',
     suspendedAt: '1576503432',
     approvedAt: '1576589832',
@@ -107,7 +115,7 @@ export const data = [
   {
     id: '2',
     requestType: 1,
-    createAt: '1577281032',
+    createAt: '1577281045',
     confirmedAt: '1576676232',
     suspendedAt: '1576503432',
     approvedAt: '1576589832',
@@ -125,7 +133,7 @@ export const data = [
   {
     id: '3',
     requestType: 1,
-    createAt: '1577281032',
+    createAt: '1577281020',
     confirmedAt: '1576676232',
     suspendedAt: '1576503432',
     approvedAt: '1576589832',
