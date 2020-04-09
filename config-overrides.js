@@ -1,4 +1,4 @@
-const { override, addLessLoader } = require("customize-cra");
+const { override, addLessLoader } = require('customize-cra');
 
 module.exports = override(
   // https://github.com/arackaf/customize-cra/issues/201
@@ -8,7 +8,7 @@ module.exports = override(
     noIeCompat: true,
     javascriptEnabled: true,
     cssLoaderOptions: {
-      modules: { localIdentName: "[name]_[local]_[hash:base64:5]" }
-    } // .less file used css-loader option, not all CSS file.
+      modules: { localIdentName: '[name]_[local]_[hash:base64:5]' },
+    }, // .less file used css-loader option, not all CSS file.
   })
 );

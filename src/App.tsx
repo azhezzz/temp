@@ -12,7 +12,7 @@ export default function () {
   }, []);
   const options = {
     filter: true,
-    selectableRows: 'multiple',
+    selectableRows: 'none',
     selectableRowsOnClick: true,
     filterType: 'dropdown',
     responsive: 'stacked',

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-useless-constructor */
 import React from 'react';
 import MUIDataTable, { MUIDataTableProps, MUIDataTableColumn } from 'mui-datatables';
 import _ from 'lodash';
@@ -9,14 +8,20 @@ import DayjsUtils from '@date-io/dayjs';
 import styles from './styles.less';
 import { Select } from '../Select';
 import { ErrorBoundaryWrap } from '../ErrorBoundary/';
+import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
+import classnames from 'classnames';
 
 interface IProps extends MUIDataTableProps {
-  columns: MUIDataTableColumn[];
+  columns: ({
+    options?: { customFilterListOptions?: any };
+    dateType?: any[];
+    isDateFilter?: boolean;
+  } & MUIDataTableColumn)[];
   csvFileName?: string;
   isSelectableRowsOnClick?: boolean;
 }
 interface IState {
-  sort: { column: string; direction: 'desc' | 'asc' | '' };
+  sort: { column: string; direction: 'desc' | 'asc' | 'none' };
   filters: any[];
   dateTypeValue: string;
   dateTypeOptions: any[];
@@ -30,7 +35,7 @@ export default class Example extends React.PureComponent<IProps, IState> {
     super(props);
     this.dateRef = React.createRef();
     this.state = {
-      sort: { column: '', direction: '' },
+      sort: { column: '', direction: 'none' },
       filters: [],
       dateTypeValue: '',
       dateTypeOptions: [],
@@ -94,13 +99,11 @@ export default class Example extends React.PureComponent<IProps, IState> {
     const { columns } = this.props;
     let dateTypeOptions: any[] = [];
     let dateTypeValue = '';
-    const sort = { column: '', direction: '' as '' };
+    const sort = { column: '', direction: 'none' as 'none' };
     const filters: any[] = [];
     const date = { from: 0, to: 0 };
     columns.forEach((item) => {
-      //@ts-ignore
       if (item.dateType) {
-        //@ts-ignore
         dateTypeOptions = item.dateType.map((it: any) => ({ text: it.label, value: it.name }));
         dateTypeValue = item.name;
       }
@@ -169,29 +172,28 @@ export default class Example extends React.PureComponent<IProps, IState> {
     const customizeColumns = _.cloneDeep(columns).map((item, index) => {
       item.options = item.options || {};
       if (item.name === sort.column) {
-        //@ts-ignore
         item.options.sortDirection = sort.direction;
       }
       if (filters[index] && (filters[index] as string[]).length) {
         console.log(item);
-        //@ts-ignore
+
         item.options.filterList = filters[index];
-        //@ts-ignore
+
         item.options.customFilterListOptions = { update: cancelFilter };
       }
-      //@ts-ignore
+
       if (item.dateType) {
         item.name = dateTypeValue || item.name;
         item.label = _.get(_.find(dateTypeOptions, ['value', dateTypeValue]), 'text', item.label);
       }
-      //@ts-ignore
+
       if (item.isDateFilter) {
         item.options.filter = true;
         item.options.filterType = 'custom';
-        //@ts-ignore
-        item.options.filterList = dateFilterList;
+
+        item.options.filterList = (dateFilterList as unknown) as string[];
         item.options.filterOptions = { logic: dateColumnFilterOptionsLogic };
-        //@ts-ignore
+
         item.options.customFilterListOptions = {
           render: dateColumnCustomFilterListOptionsRender,
           update: cancelFilter,
@@ -202,7 +204,16 @@ export default class Example extends React.PureComponent<IProps, IState> {
 
     return (
       <MuiPickersUtilsProvider utils={DayjsUtils}>
-        <MUIDataTable title={title} data={data} columns={customizeColumns as any} options={customizeOptions as any} />
+        <div className={classnames(styles.customTable)}>
+          <MuiThemeProvider theme={CustomMuiTheme}>
+            <MUIDataTable
+              title={title}
+              data={data}
+              columns={customizeColumns as any}
+              options={customizeOptions as any}
+            />
+          </MuiThemeProvider>
+        </div>
       </MuiPickersUtilsProvider>
     );
   }
@@ -231,3 +242,55 @@ function dateColumnFilterOptionsLogic(dateFormatter: string, filters: number[]) 
   console.log(fromDate, toDate, date, dateFormatter);
   return date < fromDate || date > toDate || !date;
 }
+
+const CustomMuiTheme = (() =>
+  createMuiTheme({
+    palette: { primary: { main: '#67b1f6' } },
+    overrides: {
+      MuiIconButton: { root: { color: 'inherit' } },
+      MUIDataTable: {
+        paper: {
+          backgroundColor: 'var(--surfaceL1)',
+          color: 'var(--surfaceHighEmphasis)',
+          boxShadow: 'none',
+          borderRadius: 0,
+        },
+      },
+      // thead
+      MUIDataTableHeadRow: { root: { backgroundColor: 'transparent' } },
+      MUIDataTableHeadCell: {
+        fixedHeaderCommon: { backgroundColor: 'transparent' },
+        sortAction: { alignItems: 'center' },
+        sortActive: { color: 'inherit' },
+      },
+      // tbody
+      MuiTableCell: {
+        body: { color: 'var(--surfaceHighEmphasis)' },
+        head: { color: 'var(--surfaceHighEmphasis)' },
+        root: { borderBottomColor: 'var(--backgroundMidEmphashisAlt)', minHeight: 56 },
+      },
+      // sorter
+      MuiTableSortLabel: { icon: { color: 'var(--surfaceHighEmphasis) !important' } },
+      //checkbox
+      MuiCheckbox: { root: { color: 'var(--backgroundMidEmphashisAlt)' } },
+      MUIDataTableSelectCell: {
+        headerCell: { backgroundColor: 'transparent' },
+        fixedHeaderCommon: { backgroundColor: 'transparent' },
+      },
+      // toolbar
+      MUIDataTableToolbar: {
+        icon: { color: 'var(--backgroundHighEmphasis)' },
+        actions: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end' },
+      },
+      MuiPaper: { root: { color: 'var(--surfaceHighEmphasis)', backgroundColor: 'var(--surfaceL1)' } },
+      MuiInputBase: { input: { color: 'var(--surfaceHighEmphasis)' } },
+      MuiFormLabel: { root: { color: 'var(--surfaceHighEmphasis)' } },
+      MUIDataTableFilter: { root: { backgroundColor: 'var(--surfaceL1)' }, title: { color: 'white' } },
+      MUIDataTableViewCol: { label: { color: 'var(--surfaceHighEmphasis)' }, title: { color: 'white' } },
+      // footer
+      MUIDataTablePagination: { root: { borderBottom: 'none', color: 'var(--backgroundHighEmphasis)' } },
+      MuiTablePagination: { selectIcon: { color: 'var(--backgroundHighEmphasis)' } },
+      // date picker
+      MuiPickersCalendarHeader: { iconButton: { backgroundColor: 'inherit' } },
+    },
+  } as any))();

@@ -1,0 +1,79 @@
+@import '../theme.less';
+
+.customTable {
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.25);
+  :global {
+    .MuiTablePagination-selectIcon {
+      top: 3px;
+      path {
+        fill: @backgroundHighEmphasis;
+      }
+    }
+  }
+}
+
+.datePickerContainer {
+  order: -1;
+  display: flex;
+  margin-top: -16px;
+  .datePicker {
+    width: 122px;
+    &:last-child {
+      margin-left: 8px;
+    }
+  }
+  .dateIcon {
+    svg {
+      fill: @backgroundHighEmphasis;
+    }
+  }
+}
+.dateTypeSelectContainer {
+  order: -2;
+  margin-top: -14px;
+  margin-right: 8px;
+  display: flex;
+  div[role='button'] {
+    padding-bottom: 3px;
+    text-overflow: ellipsis;
+    max-width: 150px;
+  }
+}
+.customTHead {
+  border-bottom: 1px solid @backgroundMidEmphashisAlt;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  text-align: left;
+  padding: 0 16px;
+  label + div {
+    margin-top: 0;
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
+  svg {
+    fill: @backgroundHighEmphasis;
+  }
+}
+
+.clipboard {
+  &:hover {
+    svg {
+      path {
+        fill: @primary700;
+      }
+    }
+  }
+}
+.snackbar {
+  min-width: unset !important;
+  background-color: @secondary700 !important;
+  color: @error !important;
+}
+.snackbarAction {
+  path {
+    fill: @error;
+  }
+}
