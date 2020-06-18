@@ -1,16 +1,38 @@
 /* eslint-disable react/prop-types */
 import { convertArrayToCSV } from 'convert-array-to-csv';
-import React, { FC, useMemo } from 'react';
+import React, { FC, useMemo, TextareaHTMLAttributes } from 'react';
 import Tooltip from '@material-ui/core/Tooltip';
 import { MUIDataTableColumn } from 'mui-datatables';
-import RCTC from 'react-copy-to-clipboard';
 import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
 
 import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
+import RCTC from 'react-copy-to-clipboard';
 
 import _ from 'lodash';
 import styles from './styles.less';
+
+// const copyToClipboard = (str: string) => {
+//   let copyTextarea = document.querySelector('#js-copytextarea') as HTMLTextAreaElement;
+//   if (!copyTextarea) {
+//     copyTextarea = document.createElement('textarea');
+//     copyTextarea.id = 'js-copytextarea';
+//     copyTextarea.setAttribute('readonly', '');
+//     copyTextarea.style.position = 'absolute';
+//     copyTextarea.style.left = '-9999px';
+//     document.body.appendChild(copyTextarea);
+//   }
+//   copyTextarea.value = str;
+//   copyTextarea.focus();
+//   copyTextarea.select();
+//   try {
+//     const successful = document.execCommand('copy');
+//     const msg = successful ? 'successful' : 'unsuccessful';
+//     console.log('Copying text command was ' + msg);
+//   } catch (err) {
+//     console.log('Oops, unable to copy');
+//   }
+// };
 
 interface Props {
   data: Array<Record<string, any> | string[]>;
@@ -42,6 +64,7 @@ export const CopyToClipboard: FC<Props> = ({ data, headers }) => {
       separator: '\t',
     });
   }, [data, headers]);
+
   return (
     <>
       <Snackbar
@@ -50,14 +73,12 @@ export const CopyToClipboard: FC<Props> = ({ data, headers }) => {
         onClose={handleClose}
         message="Copy Successd"
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        ContentProps={{
-          classes: { root: styles.snackbar, action: styles.snackbarAction },
-        }}
+        ContentProps={{ classes: { root: styles.snackbar, action: styles.snackbarAction } }}
         action={<span>x</span>}
       />
       <Tooltip title="Copy to Clipboard">
         <span>
-          <RCTC text={csv} onCopy={() => setOpen(true)}>
+          <RCTC text={csv} options={{ format: 'text/plain' }}>
             <IconButton color="primary" aria-label="add to shopping cart">
               <AddShoppingCartIcon />
             </IconButton>
